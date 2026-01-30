@@ -4,7 +4,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   POSTGRES_USER: z.string().default("postgres"),
   POSTGRES_PASSWORD: z.string().default("postgres"),
-  POSTGRES_DB: z.string().default("writer_platform"),
+  POSTGRES_DB: z.string().default("writer_future"),
   POSTGRES_HOST: z.string().default("localhost"),
   POSTGRES_PORT: z.string().default("5432"),
 });

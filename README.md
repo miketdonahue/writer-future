@@ -32,12 +32,12 @@ Create a `.env.local` file in the root directory with the following:
 # Database Configuration
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-POSTGRES_DB=writer_platform
+POSTGRES_DB=writer_future
 POSTGRES_PORT=5432
 POSTGRES_HOST=localhost
 
 # Database Connection String (used by Drizzle)
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/writer_platform
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/writer_future
 ```
 
 3. **Start the PostgreSQL database:**

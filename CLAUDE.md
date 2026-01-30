@@ -1,6 +1,6 @@
-# Writer Platform
+# Writer Future
 
-A modern writing platform built with Next.js 16, featuring workflow management and AI-powered writing capabilities.
+A modern app built with Next.js 16, featuring workflow management and AI-powered writing capabilities.
 
 ## Tech Stack
 

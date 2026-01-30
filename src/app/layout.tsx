@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TrpcProvider } from "@/trpc/TrpcProvider";
 import "./globals.css";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Writer Platform",
-  description: "A modern writing platform built with Next.js",
+  title: "Writer Future",
+  description: "A modern app built with Next.js",
 };
 
 export default function RootLayout({
@@ -28,9 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <TrpcProvider>{children}</TrpcProvider>
         <Toaster />
       </body>

@@ -1,7 +1,7 @@
 # Database reset (PostgreSQL in Docker)
 
 This project runs Postgres via `docker-compose.yml` (service: `db`, image: `postgres:16-alpine`).
-Default DB name is `writer_platform` (configurable via `POSTGRES_DB`).
+Default DB name is `writer_future` (configurable via `POSTGRES_DB`).
 
 ## Full reset by deleting the Docker volume
 
