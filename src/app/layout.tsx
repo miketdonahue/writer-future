@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TrpcProvider } from "@/trpc/TrpcProvider";
+import { AppShell } from "@/components/app-shell";
+import { DetailPaneProvider } from "@/components/detail-pane-context";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -29,7 +31,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <TrpcProvider>{children}</TrpcProvider>
+        <TrpcProvider>
+          <DetailPaneProvider>
+            <AppShell>{children}</AppShell>
+          </DetailPaneProvider>
+        </TrpcProvider>
         <Toaster />
       </body>
     </html>

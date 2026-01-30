@@ -1,7 +1,0 @@
----
-description: Project context and conventions for the Writer Future
-globs: 
-alwaysApply: true
----
-
-@CLAUDE.md
