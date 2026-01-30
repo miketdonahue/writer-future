@@ -1,0 +1,7 @@
+---
+description: Project context and conventions for the Writer Platform
+globs: 
+alwaysApply: true
+---
+
+@CLAUDE.md
