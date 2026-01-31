@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
-import { TrpcProvider } from "@/trpc/TrpcProvider";
 import { AppShell } from "@/components/app-shell";
 import { DetailPaneProvider } from "@/components/detail-pane-context";
+import { Toaster } from "@/components/ui/sonner";
+import { TrpcProvider } from "@/trpc/TrpcProvider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });

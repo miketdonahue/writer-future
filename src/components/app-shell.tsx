@@ -1,14 +1,15 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Link from "next/link";
 import { Home, Inbox, Workflow } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useDetailPane } from "@/components/detail-pane-context";
+import { PageTransition } from "@/components/page-transition";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 const tabs = [
-  { id: "home", href: "/", icon: Home, label: "Home" },
+  { id: "home", href: "/home", icon: Home, label: "Home" },
   { id: "inbox", href: "/inbox", icon: Inbox, label: "Inbox" },
   { id: "agents", href: "/agents", icon: Workflow, label: "Agents" },
 ] as const;
@@ -18,7 +19,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { isOpen, content } = useDetailPane();
 
   const getIsActive = (href: string) => {
-    if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
 
@@ -33,14 +33,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             return (
               <Tooltip key={tab.id}>
-                <TooltipTrigger asChild>
+                <TooltipTrigger>
                   <Link
                     href={tab.href}
                     className={cn(
                       "group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors",
-                      isActive
-                        ? "text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
+                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                     )}
                   >
                     {/* Active indicator */}
@@ -70,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         >
           <main className="h-full w-[calc(50%-6px)] shrink-0 overflow-auto rounded-lg border border-border bg-background p-6">
-            {children}
+            <PageTransition>{children}</PageTransition>
           </main>
         </div>
 
@@ -86,9 +84,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <>
                 <h2 className="text-sm font-medium text-muted-foreground">Details</h2>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  This panel shows contextual information. When you select a document, its
-                  metadata appears here. When you view a teammate, their activity shows. The
-                  right column adapts to the left.
+                  This panel shows contextual information. When you select a document, its metadata
+                  appears here. When you view a teammate, their activity shows. The right column
+                  adapts to the left.
                 </p>
               </>
             )}
