@@ -1,7 +1,5 @@
 # AGENTS
 
-<skills_system priority="1">
-
 ## Project Status: Proof of Concept
 
 This is a **POC/prototyping project**. Speed of iteration matters more than production-grade practices:
@@ -144,6 +142,8 @@ src/
 6. **Don't use single quotes** — Biome enforces double quotes
 
 ## Available Skills
+
+<skills_system priority="1">
 
 <!-- SKILLS_TABLE_START -->
 <usage>
