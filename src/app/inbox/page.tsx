@@ -1,32 +1,11 @@
 "use client";
 
-import {
-  AlertCircle,
-  ArrowDown,
-  ArrowUp,
-  CornerDownLeft,
-  FileText,
-  ListFilter,
-  Mail,
-  Search,
-  Workflow,
-  X,
-} from "lucide-react";
-import type { ComponentType } from "react";
-import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, CornerDownLeft, ListFilter, Search, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDetailPane } from "@/components/detail-pane-context";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
+import { Item, ItemContent, ItemDescription, ItemGroup, ItemTitle } from "@/components/ui/item";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -90,7 +69,7 @@ const mockInboxItems: InboxItem[] = [
     tags: ["approval", "design"],
     detail: {
       summary:
-        "The design team has completed updates to the component library and is requesting your approval to proceed with implementation.",
+        "The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation.",
       whatYouNeedToDo: [
         "Review the updated component specifications",
         "Verify alignment with brand guidelines",
@@ -177,30 +156,12 @@ const mockInboxItems: InboxItem[] = [
   },
 ];
 
-function getTypeIcon(type: InboxItemType) {
-  const iconMap: Record<InboxItemType, ComponentType<{ className?: string }>> = {
-    message: Mail,
-    task: Workflow,
-    review: FileText,
-    alert: AlertCircle,
-  };
-  return iconMap[type] || Mail;
-}
-
-function getPriorityColor(priority: InboxItem["priority"]) {
-  const colorMap: Record<InboxItem["priority"], string> = {
-    low: "text-muted-foreground",
-    normal: "text-foreground",
-    high: "text-destructive",
-  };
-  return colorMap[priority];
-}
-
 export default function InboxPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [timeFilter, setTimeFilter] = useState<"now" | "soon" | "later">("now");
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const { open, setContent } = useDetailPane();
+  const { open, close, setContent } = useDetailPane();
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return mockInboxItems;
@@ -214,11 +175,62 @@ export default function InboxPage() {
     );
   }, [searchQuery]);
 
-  const handleItemClick = (item: InboxItem) => {
-    setSelectedItemId(item.id);
-    setContent(<InboxDetail item={item} />);
-    open();
-  };
+  const handleItemClick = useCallback(
+    (item: InboxItem) => {
+      setSelectedItemId(item.id);
+      setContent(<InboxDetail item={item} />);
+      open();
+    },
+    [open, setContent]
+  );
+
+  useEffect(() => {
+    if (!filteredItems.length) {
+      setSelectedItemId(null);
+      return;
+    }
+    const stillVisible = filteredItems.some((item) => item.id === selectedItemId);
+    if (!selectedItemId || !stillVisible) {
+      setSelectedItemId(filteredItems[0].id);
+    }
+  }, [filteredItems, selectedItemId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!filteredItems.length) return;
+
+      const currentIndex = filteredItems.findIndex((item) => item.id === selectedItemId);
+      const safeIndex = currentIndex < 0 ? 0 : currentIndex;
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        const nextIndex = Math.min(safeIndex + 1, filteredItems.length - 1);
+        setSelectedItemId(filteredItems[nextIndex].id);
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        const nextIndex = Math.max(safeIndex - 1, 0);
+        setSelectedItemId(filteredItems[nextIndex].id);
+      }
+
+      if (event.key === "Enter") {
+        event.preventDefault();
+        const selectedItem = filteredItems[safeIndex];
+        if (selectedItem) {
+          handleItemClick(selectedItem);
+        }
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [close, filteredItems, handleItemClick, selectedItemId]);
 
   return (
     <div className="flex h-full items-center justify-center p-3">
@@ -245,6 +257,7 @@ export default function InboxPage() {
                   placeholder="Search your inbox"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  ref={searchInputRef}
                   className="h-9 border-0 bg-transparent pl-6 pr-3 text-sm shadow-none placeholder:text-muted-foreground/60 focus-visible:border-transparent focus-visible:ring-0"
                 />
               </div>
@@ -253,7 +266,10 @@ export default function InboxPage() {
                   type="button"
                   variant="secondary"
                   size="icon"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setSearchQuery("");
+                    searchInputRef.current?.focus();
+                  }}
                   aria-label="Clear search"
                   className="size-9 shrink-0 rounded-xl"
                 >
@@ -305,9 +321,8 @@ export default function InboxPage() {
               {filteredItems.length === 0 ? (
                 <div className="p-8 text-center text-sm text-muted-foreground">No items found</div>
               ) : (
-                <ItemGroup className="gap-0 px-3 py-1">
+                <ItemGroup className="gap-0.5 px-3 py-1">
                   {filteredItems.map((item) => {
-                    const Icon = getTypeIcon(item.type);
                     const isSelected = selectedItemId === item.id;
 
                     return (
@@ -315,15 +330,12 @@ export default function InboxPage() {
                         key={item.id}
                         variant="default"
                         className={cn(
-                          "rounded-xl border-0 px-4 py-3.5 hover:bg-muted/40",
+                          "cursor-pointer rounded-xl border-0 px-4 py-3.5 hover:bg-brand-accent/60",
                           "focus-visible:ring-0 focus-visible:ring-offset-0",
-                          isSelected && "bg-muted/60"
+                          isSelected && "bg-brand-accent/60"
                         )}
                         onClick={() => handleItemClick(item)}
                       >
-                        <ItemMedia variant="icon" className="mt-0.5">
-                          <Icon className={cn("size-4", getPriorityColor(item.priority))} />
-                        </ItemMedia>
                         <ItemContent className="gap-1">
                           <ItemTitle className="text-sm font-medium leading-snug">
                             {item.title}
@@ -332,21 +344,11 @@ export default function InboxPage() {
                             {item.preview}
                           </ItemDescription>
                         </ItemContent>
-                        <ItemActions>
-                          <div className="flex flex-col items-end gap-1.5">
-                            <span className="text-[11px] text-muted-foreground/70">
-                              {item.receivedAt}
-                            </span>
-                            {item.priority === "high" && (
-                              <Badge
-                                variant="destructive"
-                                className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-                              >
-                                {item.priority}
-                              </Badge>
-                            )}
-                          </div>
-                        </ItemActions>
+                        <div className="ml-auto flex flex-col items-end self-start">
+                          <span className="text-[11px] text-muted-foreground/70">
+                            {item.receivedAt}
+                          </span>
+                        </div>
                       </Item>
                     );
                   })}

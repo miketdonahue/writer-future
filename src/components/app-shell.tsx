@@ -1,31 +1,41 @@
 "use client";
 
-import { Home, Inbox, Workflow, X } from "lucide-react";
+import { Home, Inbox, ServerCog, Workflow, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLayoutEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChatComposer } from "@/components/chat-composer";
-import {
-  DetailPaneProvider,
-  useDetailPane,
-} from "@/components/detail-pane-context";
+import { DetailPaneProvider, useDetailPane } from "@/components/detail-pane-context";
 import { PageTransition } from "@/components/page-transition";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+/**
+ * Renders children only after client mount. Avoids hydration mismatch for
+ * Base UI components that use useId(), which can differ between Next.js
+ * server and client React instances.
+ */
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  return <>{children}</>;
+}
+
 const tabs = [
   { id: "home", href: "/home", icon: Home, label: "Home" },
   { id: "inbox", href: "/inbox", icon: Inbox, label: "Inbox" },
-  { id: "agents", href: "/agents", icon: Workflow, label: "Agents" },
+  { id: "agents", href: "/agents", icon: ServerCog, label: "Agents" },
+  { id: "automations", href: "/automations", icon: Workflow, label: "Automations" },
 ] as const;
 
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
   const { isOpen, content, close, setContent } = useDetailPane();
-  const showHomeComposer = pathname === "/home";
+  const composerHeight = "96px";
 
   const getIsActive = (href: string) => {
     return pathname.startsWith(href);
@@ -42,42 +52,47 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-background-warm">
-      {/* Tool Rail */}
+      {/* Tool Rail - client-only to avoid Base UI useId hydration mismatch (Next server vs client React) */}
       <nav className="flex w-14 shrink-0 flex-col items-center justify-center border-r border-border bg-background">
-        <div className="flex flex-col gap-1">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = getIsActive(tab.href);
+        <ClientOnly>
+          <div className="flex flex-col gap-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = getIsActive(tab.href);
 
-            return (
-              <Tooltip key={tab.id}>
-                <TooltipTrigger>
-                  <Link
-                    href={tab.href}
-                    className={cn(
-                      "group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors",
-                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {/* Active indicator */}
-                    <span
+              return (
+                <Tooltip key={tab.id}>
+                  <TooltipTrigger>
+                    <Link
+                      href={tab.href}
                       className={cn(
-                        "absolute left-0 h-6 w-0.5 rounded-r-full bg-foreground transition-opacity",
-                        isActive ? "opacity-100" : "opacity-0"
+                        "group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+                        isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                       )}
-                    />
-                    <Icon className="h-5 w-5" strokeWidth={1.5} />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent side="right">{tab.label}</TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </div>
+                    >
+                      {/* Active indicator */}
+                      <span
+                        className={cn(
+                          "absolute left-0 h-6 w-0.5 rounded-r-full bg-foreground transition-opacity",
+                          isActive ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                      <Icon className="h-5 w-5" strokeWidth={1.5} />
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{tab.label}</TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </ClientOnly>
       </nav>
 
       {/* Content Area */}
-      <div className="relative min-w-0 flex-1 overflow-x-clip">
+      <div
+        className="relative min-w-0 flex-1 overflow-x-clip"
+        style={{ "--composer-height": composerHeight } as React.CSSProperties}
+      >
         {/* Main Content Pane - uses motion for smooth layout animations */}
         <motion.div
           className="absolute inset-0 flex justify-center p-3"
@@ -88,28 +103,21 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         >
           <main className="h-full w-[calc(50%-6px)] shrink-0 overflow-hidden">
             <div className="relative h-full">
-              <div className={cn("h-full overflow-auto", showHomeComposer && "pb-32")}>
+              <div className="h-full overflow-auto pb-40">
                 <PageTransition>{children}</PageTransition>
               </div>
-
-              <AnimatePresence>
-                {showHomeComposer && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="absolute inset-x-0 bottom-0 px-6 pb-6"
-                  >
-                    <div className="mx-auto max-w-2xl">
-                      <ChatComposer placeholder="Ask anything..." />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </div>
           </main>
         </motion.div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+          <div className="absolute inset-x-0 -top-8 h-8 bg-linear-to-t from-background-warm via-background-warm/70 to-transparent" />
+          <div className="relative bg-background-warm px-6 pb-6 pt-4">
+            <div className="pointer-events-auto mx-auto max-w-2xl">
+              <ChatComposer placeholder="Ask anything..." />
+            </div>
+          </div>
+        </div>
 
         {/* Detail Pane - uses AnimatePresence for proper enter/exit */}
         <AnimatePresence>
@@ -119,9 +127,9 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 16, opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              className="absolute right-0 top-0 flex h-full w-1/2 justify-center p-3 pl-1.5"
+              className="absolute right-0 top-0 flex h-[calc(100%-var(--composer-height))] w-1/2 justify-center p-3 pl-1.5"
             >
-              <aside className="relative h-full w-full max-w-[calc(100%-6px)] overflow-auto rounded-lg border border-border bg-background p-6">
+              <aside className="relative h-full w-full max-w-[calc(100%-6px)] overflow-y-auto rounded-lg border border-border bg-background px-6 pt-6 pb-20">
                 <Button
                   type="button"
                   variant="ghost"
