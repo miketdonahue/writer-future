@@ -86,6 +86,51 @@ pnpm db:studio              # Open Drizzle Studio
 - Keep styles co-located with components
 - 100-character line width limit
 
+### UI Design System
+
+This project follows a specific visual language. Apply these patterns consistently:
+
+#### Typography
+- **Section headers:** `uppercase tracking-tight font-semibold` — bold, tight, authoritative
+- **Titles:** `text-sm font-medium leading-snug`
+- **Descriptions:** `text-xs leading-relaxed text-muted-foreground/80`
+- **Metadata/timestamps:** `text-[11px] text-muted-foreground/70`
+
+#### Spacing
+- **Panel padding:** `px-5 py-4` — generous breathing room
+- **List item padding:** `px-4 py-3.5`
+- **Gap between sections:** `gap-3` to `gap-5`
+- **Margins between major sections:** `mb-5`
+
+#### Border Radius
+| Element | Radius | Class |
+|---------|--------|-------|
+| Panels/containers | Large, soft | `rounded-2xl` |
+| List items, cards | Medium-large | `rounded-xl` |
+| Buttons (icon) | Medium-large | `rounded-xl` |
+| Pill buttons/badges | Full | `rounded-full` |
+
+#### Borders & Depth
+- **Panel borders:** Subtle with `border-border/60`
+- **Shadows:** Minimal `shadow-sm` on panels only
+- **Separators:** Use `opacity-60` for subtler dividers
+- **List separation:** Rely on spacing, not dividing borders
+
+#### Interactive States
+- **Hover (list items):** `hover:bg-muted/40` — subtle, not harsh
+- **Selected state:** `bg-muted/60`
+- **Active pill buttons:** Inverted colors `bg-foreground text-background`
+- **Inactive pill buttons:** Ghost variant with `text-muted-foreground hover:bg-muted`
+
+#### Component Patterns
+- **Search inputs:** No visible border, icon left-aligned, generous placeholder text
+- **Filter pills:** Full-round with `h-8 px-5 text-xs font-medium rounded-full`
+- **Icon buttons:** Square with `size-9 rounded-xl`
+- **Badges:** Pill-shaped with `rounded-full px-2 py-0.5 text-[10px] font-medium`
+
+#### Reference Implementation
+See `src/app/inbox/page.tsx` for the canonical example of these patterns.
+
 ## Code Style
 
 Enforced via Biome (do not override):

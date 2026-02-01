@@ -10,6 +10,7 @@ import {
   Presentation,
   Sheet,
 } from "lucide-react";
+import { useState } from "react";
 import { useDetailPane } from "@/components/detail-pane-context";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -122,9 +123,11 @@ function ProjectDetail({ project }: { project: { name: string; progress: number 
 }
 
 export default function HomePage() {
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const { open, setContent } = useDetailPane();
 
   const handleProjectClick = (project: (typeof projects)[number]) => {
+    setSelectedProjectId(project.id);
     setContent(<ProjectDetail project={project} />);
     open();
   };
@@ -166,7 +169,8 @@ export default function HomePage() {
                   "group flex w-full items-center gap-3 rounded-lg p-2 text-left",
                   "transition-colors hover:bg-muted/50 focus-visible:outline-none",
                   "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  "focus-visible:ring-offset-background"
+                  "focus-visible:ring-offset-background",
+                  selectedProjectId === project.id && "bg-muted/40"
                 )}
               >
                 <div className={cn("size-2 rounded-full", project.color)} />

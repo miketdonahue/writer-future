@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Poppins } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
-import { DetailPaneProvider } from "@/components/detail-pane-context";
 import { Toaster } from "@/components/ui/sonner";
 import { TrpcProvider } from "@/trpc/TrpcProvider";
 import "./globals.css";
@@ -32,9 +31,7 @@ export default function RootLayout({
     <html lang="en" className={poppins.variable}>
       <body className={`${geistMono.variable} antialiased`}>
         <TrpcProvider>
-          <DetailPaneProvider>
-            <AppShell>{children}</AppShell>
-          </DetailPaneProvider>
+          <AppShell>{children}</AppShell>
         </TrpcProvider>
         <Toaster />
       </body>

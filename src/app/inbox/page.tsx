@@ -221,29 +221,31 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex h-full items-center justify-center p-2">
+    <div className="flex h-full items-center justify-center p-3">
       <div className="w-full max-w-2xl">
         <div className="flex h-152 max-h-[calc(100vh-8rem)] flex-col">
           {/* Header */}
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-baseline gap-2">
-              <h2 className="text-xl font-medium text-foreground">Inbox</h2>
-              <span className="text-base text-muted-foreground">({filteredItems.length})</span>
-            </div>
+          <div className="mb-5 flex items-baseline gap-x-3">
+            <h2 className="text-xl font-semibold uppercase tracking-tight text-foreground">
+              Inbox
+            </h2>
+            <span className="text-sm text-muted-foreground">
+              {filteredItems.length} {filteredItems.length === 1 ? "item" : "items"}
+            </span>
           </div>
 
           {/* Panel unit: search + list + footer */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-background">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
             {/* Search row */}
-            <div className="flex items-center gap-2 px-4 py-3">
+            <div className="flex items-center gap-3 px-5 py-4">
               <div className="relative min-w-0 flex-1">
-                <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-0 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
                 <Input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search your inbox"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-10 border-0 bg-transparent pl-8 pr-3 shadow-none focus-visible:border-transparent focus-visible:ring-0"
+                  className="h-9 border-0 bg-transparent pl-6 pr-3 text-sm shadow-none placeholder:text-muted-foreground/60 focus-visible:border-transparent focus-visible:ring-0"
                 />
               </div>
               {searchQuery.trim() ? (
@@ -253,7 +255,7 @@ export default function InboxPage() {
                   size="icon"
                   onClick={() => setSearchQuery("")}
                   aria-label="Clear search"
-                  className="h-10 w-10 shrink-0"
+                  className="size-9 shrink-0 rounded-xl"
                 >
                   <X className="size-4" />
                 </Button>
@@ -263,16 +265,16 @@ export default function InboxPage() {
                 variant="secondary"
                 size="icon"
                 aria-label="Filter (coming soon)"
-                className="h-10 w-10 shrink-0"
+                className="size-9 shrink-0 rounded-xl"
               >
                 <ListFilter className="size-4" />
               </Button>
             </div>
 
-            <Separator />
+            <Separator className="opacity-60" />
 
             {/* Time filters */}
-            <div className="flex flex-wrap items-center gap-2 px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2 px-5 py-4">
               {(["now", "soon", "later"] as const).map((filter) => {
                 const isActive = timeFilter === filter;
                 const label = filter[0].toUpperCase() + filter.slice(1);
@@ -281,10 +283,15 @@ export default function InboxPage() {
                   <Button
                     key={filter}
                     type="button"
-                    variant={isActive ? "secondary" : "outline"}
+                    variant={isActive ? "secondary" : "ghost"}
                     size="sm"
                     onClick={() => setTimeFilter(filter)}
-                    className="rounded-full px-4"
+                    className={cn(
+                      "h-8 rounded-full px-5 text-xs font-medium",
+                      isActive
+                        ? "bg-foreground text-background hover:bg-foreground/90"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
                     aria-pressed={isActive}
                   >
                     {label}
@@ -296,9 +303,9 @@ export default function InboxPage() {
             {/* List */}
             <ScrollArea className="min-h-0 flex-1">
               {filteredItems.length === 0 ? (
-                <div className="p-6 text-center text-sm text-muted-foreground">No items found</div>
+                <div className="p-8 text-center text-sm text-muted-foreground">No items found</div>
               ) : (
-                <ItemGroup className="gap-0 divide-y divide-border px-4 py-2">
+                <ItemGroup className="gap-0 px-3 py-1">
                   {filteredItems.map((item) => {
                     const Icon = getTypeIcon(item.type);
                     const isSelected = selectedItemId === item.id;
@@ -308,24 +315,33 @@ export default function InboxPage() {
                         key={item.id}
                         variant="default"
                         className={cn(
-                          "rounded-lg border-0 px-3 py-2.5 hover:bg-muted/50",
+                          "rounded-xl border-0 px-4 py-3.5 hover:bg-muted/40",
                           "focus-visible:ring-0 focus-visible:ring-offset-0",
-                          isSelected && "bg-muted"
+                          isSelected && "bg-muted/60"
                         )}
                         onClick={() => handleItemClick(item)}
                       >
-                        <ItemMedia variant="icon">
+                        <ItemMedia variant="icon" className="mt-0.5">
                           <Icon className={cn("size-4", getPriorityColor(item.priority))} />
                         </ItemMedia>
-                        <ItemContent>
-                          <ItemTitle>{item.title}</ItemTitle>
-                          <ItemDescription>{item.preview}</ItemDescription>
+                        <ItemContent className="gap-1">
+                          <ItemTitle className="text-sm font-medium leading-snug">
+                            {item.title}
+                          </ItemTitle>
+                          <ItemDescription className="text-xs leading-relaxed text-muted-foreground/80">
+                            {item.preview}
+                          </ItemDescription>
                         </ItemContent>
                         <ItemActions>
-                          <div className="flex flex-col items-end gap-1">
-                            <span className="text-xs text-muted-foreground">{item.receivedAt}</span>
+                          <div className="flex flex-col items-end gap-1.5">
+                            <span className="text-[11px] text-muted-foreground/70">
+                              {item.receivedAt}
+                            </span>
                             {item.priority === "high" && (
-                              <Badge variant="destructive" className="text-[10px]">
+                              <Badge
+                                variant="destructive"
+                                className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                              >
                                 {item.priority}
                               </Badge>
                             )}
@@ -338,10 +354,10 @@ export default function InboxPage() {
               )}
             </ScrollArea>
 
-            <Separator />
+            <Separator className="opacity-60" />
 
             {/* Footer helpers (visual only) */}
-            <div className="flex flex-wrap items-center justify-start gap-x-6 gap-y-2 px-4 py-4 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-start gap-x-6 gap-y-2 px-5 py-4 text-[11px] text-muted-foreground/70">
               <div className="flex items-center gap-2">
                 <KbdGroup>
                   <Kbd>
