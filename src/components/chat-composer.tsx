@@ -16,7 +16,19 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+
+const MODELS = [
+  { value: "gpt-4o-mini", label: "GPT-4o Mini", description: "Best for everyday tasks" },
+  { value: "gpt-3.5-turbo", label: "GPT-3.5 Turbo", description: "Fastest for quick answers" },
+] as const;
 
 interface ChatComposerProps {
   placeholder?: string;
@@ -30,6 +42,7 @@ export function ChatComposer({
   className,
 }: ChatComposerProps) {
   const [text, setText] = useState("");
+  const [model, setModel] = useState<string>(MODELS[0].value);
 
   const handleSubmit = (message: PromptInputMessage) => {
     const trimmed = message.text.trim();
@@ -76,7 +89,29 @@ export function ChatComposer({
           </PromptInputButton>
         </PromptInputTools>
 
-        <PromptInputSubmit disabled={!text.trim()} />
+        <div className="flex items-center gap-2">
+          <Select value={model} onValueChange={(v) => v && setModel(v)}>
+            <SelectTrigger
+              size="sm"
+              className="h-7 gap-1 border-0 bg-transparent font-normal hover:bg-muted/50 px-2"
+            >
+              <SelectValue className="text-[13px] text-foreground/70">
+                {MODELS.find((m) => m.value === model)?.label}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent align="end" className="min-w-52">
+              {MODELS.map((m) => (
+                <SelectItem key={m.value} value={m.value} className="py-2.5 px-3">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-medium text-sm">{m.label}</span>
+                    <span className="text-xs text-muted-foreground">{m.description}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <PromptInputSubmit disabled={!text.trim()} />
+        </div>
       </PromptInputFooter>
     </PromptInput>
   );
