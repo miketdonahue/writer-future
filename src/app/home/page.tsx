@@ -3,9 +3,12 @@
 import {
   ArrowUpRight,
   Calendar,
+  CheckCircle2,
+  Circle,
   Clock,
   FileText,
   FolderOpen,
+  ListTodo,
   Mail,
   Presentation,
   Sheet,
@@ -13,6 +16,7 @@ import {
 import { useState } from "react";
 import { useDetailPane } from "@/components/detail-pane-context";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
 // Mock data
@@ -59,6 +63,13 @@ const emails = [
   { id: 1, subject: "Re: Q4 Planning", from: "Sarah K.", unread: true },
   { id: 2, subject: "Design review feedback", from: "Mike R.", unread: true },
   { id: 3, subject: "Weekly sync notes", from: "Team", unread: false },
+];
+
+const todos = [
+  { id: 1, title: "Send sprint goals recap to stakeholders", due: "Today", done: false, tag: "5m" },
+  { id: 2, title: "Review design system updates", due: "Tomorrow", done: false, tag: "Review" },
+  { id: 3, title: "Confirm venue for customer workshop", due: "Wed", done: true, tag: "Ops" },
+  { id: 4, title: "Draft 1-page brief for data agent", due: "Fri", done: false, tag: "Writing" },
 ];
 
 function FileIcon({ type }: { type: string }) {
@@ -133,9 +144,9 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-full p-2">
+    <div className="min-h-full p-2 pb-(--composer-height)">
       {/* Grid layout */}
-      <div className="grid min-h-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="grid min-h-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
         {/* Projects Card - Top / Wide */}
         <WidgetCard className="h-full sm:col-span-2 lg:col-span-2 lg:row-start-1">
           <WidgetHeader
@@ -190,7 +201,7 @@ export default function HomePage() {
         </WidgetCard>
 
         {/* Upcoming Meetings Card - Right / Tall */}
-        <WidgetCard className="h-full lg:col-start-3 lg:row-span-2">
+        <WidgetCard className="h-full lg:col-start-3 lg:row-span-3 lg:row-start-1">
           <WidgetHeader
             icon={Calendar}
             title="Upcoming meetings"
@@ -336,6 +347,70 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </WidgetCard>
+
+        {/* Todos Card - Third Row / Wide */}
+        <WidgetCard className="flex h-full min-h-0 flex-col sm:col-span-2 lg:col-span-2 lg:col-start-1 lg:row-start-3">
+          <WidgetHeader
+            icon={ListTodo}
+            title="Todos"
+            action={
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted"
+              >
+                Today
+                <svg className="size-3" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                  <path
+                    d="M3 4.5L6 7.5L9 4.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            }
+          />
+
+          <ScrollArea className="min-h-0 flex-1">
+            <div className="space-y-1 pr-2">
+              {todos.map((todo) => (
+                <div
+                  key={todo.id}
+                  className={cn(
+                    "group flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-muted/50",
+                    todo.done && "opacity-80"
+                  )}
+                >
+                  <div className="mt-0.5 text-muted-foreground">
+                    {todo.done ? (
+                      <CheckCircle2 className="size-4 text-emerald-600" />
+                    ) : (
+                      <Circle className="size-4" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={cn(
+                        "truncate text-sm text-foreground",
+                        todo.done && "text-muted-foreground line-through"
+                      )}
+                    >
+                      {todo.title}
+                    </p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{todo.due}</span>
+                      <span className="text-muted-foreground/40">•</span>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {todo.tag}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
         </WidgetCard>
       </div>
     </div>

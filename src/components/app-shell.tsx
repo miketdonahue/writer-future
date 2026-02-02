@@ -35,7 +35,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
   const { isOpen, content, close, setContent } = useDetailPane();
-  const composerHeight = "96px";
+  const composerHeight = "160px";
 
   const getIsActive = (href: string) => {
     return pathname.startsWith(href);
@@ -103,21 +103,21 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         >
           <main className="h-full w-[calc(50%-6px)] shrink-0 overflow-hidden">
             <div className="relative h-full">
-              <div className="h-full overflow-auto pb-40">
+              <div className="h-full overflow-auto pb-(--composer-height)">
                 <PageTransition>{children}</PageTransition>
+              </div>
+
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+                <div className="absolute inset-x-0 -top-8 h-8 bg-linear-to-t from-background-warm via-background-warm/70 to-transparent" />
+                <div className="relative bg-background-warm px-6 pb-6 pt-4">
+                  <div className="pointer-events-auto mx-auto max-w-2xl">
+                    <ChatComposer placeholder="Ask anything..." />
+                  </div>
+                </div>
               </div>
             </div>
           </main>
         </motion.div>
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-          <div className="absolute inset-x-0 -top-8 h-8 bg-linear-to-t from-background-warm via-background-warm/70 to-transparent" />
-          <div className="relative bg-background-warm px-6 pb-6 pt-4">
-            <div className="pointer-events-auto mx-auto max-w-2xl">
-              <ChatComposer placeholder="Ask anything..." />
-            </div>
-          </div>
-        </div>
 
         {/* Detail Pane - uses AnimatePresence for proper enter/exit */}
         <AnimatePresence>
@@ -127,9 +127,9 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 16, opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              className="absolute right-0 top-0 flex h-[calc(100%-var(--composer-height))] w-1/2 justify-center p-3 pl-1.5"
+              className="absolute right-0 top-0 flex h-full w-1/2 justify-center"
             >
-              <aside className="relative h-full w-full max-w-[calc(100%-6px)] overflow-y-auto rounded-lg border border-border bg-background px-6 pt-6 pb-20">
+              <aside className="relative h-full w-full overflow-y-auto border-l border-border bg-background px-6 py-6">
                 <Button
                   type="button"
                   variant="ghost"
@@ -140,16 +140,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
                 >
                   <X className="size-4" />
                 </Button>
-                {content || (
-                  <>
-                    <h2 className="text-sm font-medium text-muted-foreground">Details</h2>
-                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                      This panel shows contextual information. When you select a document, its
-                      metadata appears here. When you view a teammate, their activity shows. The
-                      right column adapts to the left.
-                    </p>
-                  </>
-                )}
+                {content}
               </aside>
             </motion.div>
           )}

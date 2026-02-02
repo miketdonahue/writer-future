@@ -69,7 +69,7 @@ const mockInboxItems: InboxItem[] = [
     tags: ["approval", "design"],
     detail: {
       summary:
-        "The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation.",
+        "The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation. component library and is requesting your approval to proceed with implementation. The design team has completed updates to the component library and is requesting your approval to proceed with implementation.",
       whatYouNeedToDo: [
         "Review the updated component specifications",
         "Verify alignment with brand guidelines",
@@ -233,9 +233,9 @@ export default function InboxPage() {
   }, [close, filteredItems, handleItemClick, selectedItemId]);
 
   return (
-    <div className="flex h-full items-center justify-center p-3">
+    <div className="flex min-h-full items-center justify-center px-3 py-6">
       <div className="w-full max-w-2xl">
-        <div className="flex h-152 max-h-[calc(100vh-8rem)] flex-col">
+        <div className="flex h-152 max-h-[calc(100vh-var(--composer-height)-8rem)] flex-col">
           {/* Header */}
           <div className="mb-5 flex items-baseline gap-x-3">
             <h2 className="text-xl font-semibold uppercase tracking-tight text-foreground">

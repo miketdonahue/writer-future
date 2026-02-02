@@ -1,6 +1,6 @@
 export default function AgentsPage() {
   return (
-    <>
+    <div className="pb-(--composer-height)">
       <h1 className="text-lg font-medium tracking-tight text-foreground">Agents</h1>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque vitae ligula sit amet
@@ -81,6 +81,6 @@ export default function AgentsPage() {
         ultrices posuere cubilia curae; Nam et sem in lacus facilisis laoreet. Aliquam sed dolor in
         lorem bibendum posuere.
       </p>
-    </>
+    </div>
   );
 }
