@@ -1,12 +1,18 @@
 "use client";
 
-import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import {
+  Message,
+  MessageAction,
+  MessageActions,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message";
+import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/stores/chat-store";
+import { ChevronDownIcon, ChevronUpIcon, CopyIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
 export function ResponsePanel() {
   const { messages, isStreaming, streamingContent, isDrawerOpen, toggleDrawer } = useChatStore();
@@ -26,6 +32,10 @@ export function ResponsePanel() {
   if (!collapsedText) {
     return null;
   }
+
+  const handleCopy = async (content: string) => {
+    await navigator.clipboard.writeText(content);
+  };
 
   return (
     <div className="pointer-events-auto absolute bottom-full left-1/2 z-30 w-[96%] -translate-x-1/2">
@@ -62,7 +72,7 @@ export function ResponsePanel() {
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
             className="relative overflow-hidden border-x border-t border-border bg-background"
           >
-            <div className="max-h-[50vh] overflow-y-auto px-3 pt-6 pb-6 space-y-4">
+            <div className="max-h-[50vh] space-y-4 overflow-y-auto px-3 pb-6 pt-6">
               {messages.map((msg) => (
                 <div key={msg.id} className="space-y-1">
                   <div
@@ -73,9 +83,22 @@ export function ResponsePanel() {
                   >
                     {msg.role}
                   </div>
-                  <div className="prose prose-sm max-w-none text-[13px] leading-relaxed dark:prose-invert">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                  </div>
+                  <Message from={msg.role}>
+                    <MessageContent className="text-[13px] leading-relaxed">
+                      <MessageResponse>{msg.content}</MessageResponse>
+                    </MessageContent>
+                    {msg.role === "assistant" && (
+                      <MessageActions>
+                        <MessageAction
+                          tooltip="Copy to clipboard"
+                          label="Copy"
+                          onClick={() => handleCopy(msg.content)}
+                        >
+                          <CopyIcon className="size-3" />
+                        </MessageAction>
+                      </MessageActions>
+                    )}
+                  </Message>
                 </div>
               ))}
 
@@ -85,17 +108,18 @@ export function ResponsePanel() {
                   <div className="text-[10px] uppercase tracking-wide text-primary/70">
                     assistant
                   </div>
-                  <div className="prose prose-sm max-w-none text-[13px] leading-relaxed dark:prose-invert">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{streamingContent}</ReactMarkdown>
-                  </div>
+                  <Message from="assistant">
+                    <MessageContent className="text-[13px] leading-relaxed">
+                      <MessageResponse>{streamingContent}</MessageResponse>
+                    </MessageContent>
+                  </Message>
                 </div>
               )}
 
               {/* Show waiting indicator if streaming but no content yet */}
               {isStreaming && !streamingContent && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Spinner className="size-3.5" />
-                  <span>Generating response...</span>
+                  <Shimmer duration={1.5}>Generating response...</Shimmer>
                 </div>
               )}
             </div>
