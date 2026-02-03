@@ -8,9 +8,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChatComposer } from "@/components/chat-composer";
 import { DetailPaneProvider, useDetailPane } from "@/components/detail-pane-context";
 import { PageTransition } from "@/components/page-transition";
+import { ResponsePanel } from "@/components/response-panel";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useChatStore } from "@/stores/chat-store";
 
 /**
  * Renders children only after client mount. Avoids hydration mismatch for
@@ -35,7 +37,8 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
   const { isOpen, content, close, setContent } = useDetailPane();
-  const composerHeight = "160px";
+  const { isDrawerOpen } = useChatStore();
+  const composerHeight = "196px";
 
   const getIsActive = (href: string) => {
     return pathname.startsWith(href);
@@ -52,6 +55,19 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-background-warm">
+      {/* Full-page backdrop overlay when response panel is open */}
+      <AnimatePresence>
+        {isDrawerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="fixed inset-0 z-40 bg-black/40"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Tool Rail - client-only to avoid Base UI useId hydration mismatch (Next server vs client React) */}
       <nav className="flex w-14 shrink-0 flex-col items-center justify-center border-r border-border bg-background">
         <ClientOnly>
@@ -107,10 +123,11 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
                 <PageTransition>{children}</PageTransition>
               </div>
 
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-                <div className="absolute inset-x-0 -top-8 h-8 bg-linear-to-t from-background-warm via-background-warm/70 to-transparent" />
-                <div className="relative bg-background-warm px-6 pb-6 pt-4">
-                  <div className="pointer-events-auto mx-auto max-w-2xl">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50">
+                <div className="absolute inset-x-0 -top-14 h-14 bg-linear-to-t from-background-warm via-background-warm/70 to-transparent" />
+                <div className="relative bg-background-warm px-6 pb-6 pt-8">
+                  <div className="pointer-events-auto relative mx-auto max-w-2xl">
+                    <ResponsePanel />
                     <ChatComposer placeholder="Ask anything..." />
                   </div>
                 </div>

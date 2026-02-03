@@ -1,7 +1,8 @@
 "use client";
 
+import { useChat } from "@ai-sdk/react";
 import { Mic } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   PromptInput,
   PromptInputActionAddAttachments,
@@ -24,6 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useChatStore } from "@/stores/chat-store";
+import { trpc } from "@/trpc/client";
 
 const MODELS = [
   { value: "gpt-4o-mini", label: "GPT-4o Mini", description: "Best for everyday tasks" },
@@ -44,12 +47,113 @@ export function ChatComposer({
   const [text, setText] = useState("");
   const [model, setModel] = useState<string>(MODELS[0].value);
 
-  const handleSubmit = (message: PromptInputMessage) => {
+  const { setMessages, addMessage, setStreaming, setStreamingContent } = useChatStore();
+
+  // Load messages from database
+  const { data: savedMessages } = trpc.chat.getMessages.useQuery();
+  const saveMessageMutation = trpc.chat.saveMessage.useMutation();
+
+  // Sync saved messages to store on load
+  useEffect(() => {
+    if (savedMessages) {
+      // Cast role to the expected union type
+      setMessages(
+        savedMessages.map((msg) => ({
+          ...msg,
+          role: msg.role as "user" | "assistant",
+        }))
+      );
+    }
+  }, [savedMessages, setMessages]);
+
+  // Track the final content for saving when streaming completes
+  const finalContentRef = useRef<string>("");
+
+  const {
+    messages: aiMessages,
+    sendMessage,
+    status,
+  } = useChat({
+    onFinish: async () => {
+      // Save assistant message to DB when streaming completes
+      // Use the accumulated content from the ref
+      const content = finalContentRef.current;
+      if (content) {
+        const savedMsg = await saveMessageMutation.mutateAsync({
+          role: "assistant",
+          content,
+        });
+        addMessage({
+          ...savedMsg,
+          role: savedMsg.role as "user" | "assistant",
+        });
+      }
+      setStreaming(false);
+      setStreamingContent("");
+      finalContentRef.current = "";
+    },
+    onError: () => {
+      setStreaming(false);
+      setStreamingContent("");
+      finalContentRef.current = "";
+    },
+  });
+
+  // Sync streaming response to store and ref
+  useEffect(() => {
+    const lastMessage = aiMessages[aiMessages.length - 1];
+    if (lastMessage && lastMessage.role === "assistant" && lastMessage.parts) {
+      const textPart = lastMessage.parts.find((p) => p.type === "text");
+      if (textPart && textPart.type === "text" && "text" in textPart) {
+        const text = textPart.text;
+        setStreamingContent(text);
+        finalContentRef.current = text;
+      }
+    }
+  }, [aiMessages, setStreamingContent]);
+
+  // Update streaming status based on useChat status
+  useEffect(() => {
+    if (status === "submitted" || status === "streaming") {
+      setStreaming(true);
+    }
+  }, [status, setStreaming]);
+
+  const handleSubmit = async (message: PromptInputMessage) => {
     const trimmed = message.text.trim();
     if (!trimmed) return;
+
+    // Save user message to DB immediately
+    const userMsg = await saveMessageMutation.mutateAsync({
+      role: "user",
+      content: trimmed,
+    });
+    addMessage({
+      ...userMsg,
+      role: userMsg.role as "user" | "assistant",
+    });
+
+    // Start streaming
+    setStreaming(true);
+    setStreamingContent("");
+
+    // Send message via AI SDK
+    sendMessage({
+      parts: [{ type: "text", text: trimmed }],
+    });
+
+    // Also call optional onSubmit callback
     onSubmit?.(trimmed);
     setText("");
   };
+
+  // Determine status for submit button
+  const submitStatus =
+    status === "submitted" || status === "streaming"
+      ? "streaming"
+      : status === "error"
+        ? "error"
+        : undefined;
 
   return (
     <PromptInput
@@ -110,7 +214,7 @@ export function ChatComposer({
               ))}
             </SelectContent>
           </Select>
-          <PromptInputSubmit disabled={!text.trim()} />
+          <PromptInputSubmit disabled={!text.trim()} status={submitStatus} />
         </div>
       </PromptInputFooter>
     </PromptInput>

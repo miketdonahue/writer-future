@@ -7,6 +7,7 @@ const envSchema = z.object({
   POSTGRES_DB: z.string().default("writer_future"),
   POSTGRES_HOST: z.string().default("localhost"),
   POSTGRES_PORT: z.string().default("5432"),
+  OPENAI_API_KEY: z.string().min(1),
 });
 
 export const env = envSchema.parse({
@@ -16,4 +17,5 @@ export const env = envSchema.parse({
   POSTGRES_DB: process.env.POSTGRES_DB,
   POSTGRES_HOST: process.env.POSTGRES_HOST,
   POSTGRES_PORT: process.env.POSTGRES_PORT,
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
 });
