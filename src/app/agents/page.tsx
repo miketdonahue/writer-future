@@ -1,8 +1,9 @@
 "use client";
 
-import { ListFilter, MoreHorizontal, Plus, Search } from "lucide-react";
+import { Bot, ListFilter, MoreHorizontal, Plus, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDetailPane } from "@/components/detail-pane-context";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -21,6 +22,8 @@ type AgentStatus = "running" | "idle" | "completed" | "failed" | "paused";
 type Agent = {
   id: string;
   name: string;
+  description?: string;
+  avatar?: string;
   type: AgentType;
   status: AgentStatus;
   lastAction: string;
@@ -34,6 +37,7 @@ const mockAgents: Agent[] = [
   {
     id: "1",
     name: "Customer Support Bot",
+    description: "support@company.com",
     type: "task",
     status: "running",
     lastAction: "Answered question about billing cycles",
@@ -43,6 +47,7 @@ const mockAgents: Agent[] = [
   {
     id: "2",
     name: "Data Pipeline Runner",
+    description: "ETL & data processing",
     type: "workflow",
     status: "running",
     lastAction: "Processing customer records batch",
@@ -53,6 +58,7 @@ const mockAgents: Agent[] = [
   {
     id: "3",
     name: "Email Drafting Assistant",
+    description: "Content generation",
     type: "assistant",
     status: "idle",
     lastAction: "Generated draft for Q4 report",
@@ -62,6 +68,7 @@ const mockAgents: Agent[] = [
   {
     id: "4",
     name: "Code Review Agent",
+    description: "engineering@company.com",
     type: "assistant",
     status: "completed",
     lastAction: "Reviewed PR #1423 — 12 suggestions",
@@ -71,6 +78,7 @@ const mockAgents: Agent[] = [
   {
     id: "5",
     name: "Onboarding Flow",
+    description: "New user automation",
     type: "workflow",
     status: "failed",
     lastAction: "Failed at step: Verify email domain",
@@ -82,6 +90,7 @@ const mockAgents: Agent[] = [
   {
     id: "6",
     name: "Sales Inquiry Handler",
+    description: "sales@company.com",
     type: "task",
     status: "paused",
     lastAction: "Escalated to human agent",
@@ -100,6 +109,7 @@ const mockAgents: Agent[] = [
   {
     id: "8",
     name: "Lead Qualification Pipeline",
+    description: "Marketing automation",
     type: "workflow",
     status: "completed",
     lastAction: "Qualified 23 leads, routed to sales",
@@ -154,33 +164,30 @@ export default function AgentsPage() {
   }, [filteredAgents, selectedAgentId]);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-6 py-8">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Agents</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Monitor and manage your active agents
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="size-9 rounded-full">
-            <Search className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="size-9 rounded-full">
-            <ListFilter className="size-4" />
-          </Button>
-          <Button size="sm" className="ml-2 gap-1.5">
-            <Plus className="size-4" />
-            New Agent
-          </Button>
-        </div>
-      </div>
+    <div className="flex min-h-full items-center justify-center px-3 py-6">
+      <div className="w-full max-w-5xl">
+        <div className="flex h-152 max-h-[calc(100vh-var(--composer-height)-8rem)] flex-col">
+          {/* Header */}
+          <div className="mb-5 flex items-center justify-between">
+            <h1 className="text-xl font-semibold uppercase tracking-tight">Agents</h1>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="size-9 rounded-full">
+                <Search className="size-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="size-9 rounded-full">
+                <ListFilter className="size-4" />
+              </Button>
+              <Button size="sm" className="ml-2 gap-1.5">
+                <Plus className="size-4" />
+                New Agent
+              </Button>
+            </div>
+          </div>
 
-      {/* Panel */}
-      <div className="overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
+          {/* Panel */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
         {/* Filter tabs */}
-        <div className="flex items-center gap-1 border-b border-border/60 px-2">
+        <div className="flex shrink-0 items-center gap-1 border-b border-border/60 px-2">
           {(["all", "task", "assistant", "workflow"] as const).map((filter) => {
             const isActive = typeFilter === filter;
             const labels: Record<typeof filter, string> = {
@@ -208,8 +215,9 @@ export default function AgentsPage() {
         </div>
 
         {/* Table */}
-        <Table>
-          <TableHeader>
+        <div className="min-h-0 flex-1 overflow-auto">
+          <Table>
+          <TableHeader className="sticky top-0 bg-background">
             <TableRow className="hover:bg-transparent">
               <TableHead className="pl-5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Agent
@@ -247,11 +255,30 @@ export default function AgentsPage() {
                     className={cn("cursor-pointer", isSelected && "bg-muted/50")}
                     onClick={() => handleAgentClick(agent)}
                   >
-                    <TableCell className="pl-5 font-medium">{agent.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="py-4 pl-5">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="size-10">
+                          {agent.avatar ? (
+                            <AvatarImage src={agent.avatar} alt={agent.name} />
+                          ) : null}
+                          <AvatarFallback className="bg-muted">
+                            <Bot className="size-4 text-muted-foreground" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="font-medium">{agent.name}</div>
+                          {agent.description && (
+                            <div className="truncate text-sm text-muted-foreground">
+                              {agent.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 text-muted-foreground">
                       {typeLabels[agent.type]}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <span className={cn("inline-flex items-center gap-1.5", status.color)}>
                         <span
                           className={cn(
@@ -266,13 +293,13 @@ export default function AgentsPage() {
                         {status.label}
                       </span>
                     </TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">
+                    <TableCell className="max-w-xs truncate py-4 text-muted-foreground">
                       {agent.lastAction}
                     </TableCell>
-                    <TableCell className="pr-5 text-right text-muted-foreground">
+                    <TableCell className="py-4 pr-5 text-right text-muted-foreground">
                       {agent.lastActionAt}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-4">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -288,6 +315,9 @@ export default function AgentsPage() {
             )}
           </TableBody>
         </Table>
+        </div>
+        </div>
+      </div>
       </div>
     </div>
   );
