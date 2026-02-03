@@ -1,86 +1,294 @@
+"use client";
+
+import { ListFilter, MoreHorizontal, Plus, Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDetailPane } from "@/components/detail-pane-context";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { AgentDetail } from "./_components/agent-detail";
+
+type AgentType = "task" | "assistant" | "workflow";
+type AgentStatus = "running" | "idle" | "completed" | "failed" | "paused";
+
+type Agent = {
+  id: string;
+  name: string;
+  type: AgentType;
+  status: AgentStatus;
+  lastAction: string;
+  lastActionAt: string;
+  progress?: { current: number; total: number };
+  tokensUsed?: number;
+  errorMessage?: string;
+};
+
+const mockAgents: Agent[] = [
+  {
+    id: "1",
+    name: "Customer Support Bot",
+    type: "task",
+    status: "running",
+    lastAction: "Answered question about billing cycles",
+    lastActionAt: "2m ago",
+    tokensUsed: 1247,
+  },
+  {
+    id: "2",
+    name: "Data Pipeline Runner",
+    type: "workflow",
+    status: "running",
+    lastAction: "Processing customer records batch",
+    lastActionAt: "5m ago",
+    progress: { current: 4, total: 7 },
+    tokensUsed: 3891,
+  },
+  {
+    id: "3",
+    name: "Email Drafting Assistant",
+    type: "assistant",
+    status: "idle",
+    lastAction: "Generated draft for Q4 report",
+    lastActionAt: "1h ago",
+    tokensUsed: 892,
+  },
+  {
+    id: "4",
+    name: "Code Review Agent",
+    type: "assistant",
+    status: "completed",
+    lastAction: "Reviewed PR #1423 — 12 suggestions",
+    lastActionAt: "3h ago",
+    tokensUsed: 2156,
+  },
+  {
+    id: "5",
+    name: "Onboarding Flow",
+    type: "workflow",
+    status: "failed",
+    lastAction: "Failed at step: Verify email domain",
+    lastActionAt: "45m ago",
+    progress: { current: 2, total: 5 },
+    tokensUsed: 456,
+    errorMessage: "DNS lookup timeout for domain verification",
+  },
+  {
+    id: "6",
+    name: "Sales Inquiry Handler",
+    type: "task",
+    status: "paused",
+    lastAction: "Escalated to human agent",
+    lastActionAt: "20m ago",
+    tokensUsed: 678,
+  },
+  {
+    id: "7",
+    name: "Document Summarizer",
+    type: "assistant",
+    status: "running",
+    lastAction: "Summarizing Q3 financial report",
+    lastActionAt: "1m ago",
+    tokensUsed: 1534,
+  },
+  {
+    id: "8",
+    name: "Lead Qualification Pipeline",
+    type: "workflow",
+    status: "completed",
+    lastAction: "Qualified 23 leads, routed to sales",
+    lastActionAt: "2h ago",
+    progress: { current: 4, total: 4 },
+    tokensUsed: 4521,
+  },
+];
+
+const statusConfig: Record<AgentStatus, { label: string; color: string }> = {
+  running: { label: "Running", color: "text-green-600 dark:text-green-500" },
+  idle: { label: "Idle", color: "text-amber-600 dark:text-amber-500" },
+  completed: { label: "Completed", color: "text-blue-600 dark:text-blue-500" },
+  failed: { label: "Failed", color: "text-red-600 dark:text-red-500" },
+  paused: { label: "Paused", color: "text-muted-foreground" },
+};
+
+const typeLabels: Record<AgentType, string> = {
+  task: "Task",
+  assistant: "Assistant",
+  workflow: "Workflow",
+};
+
 export default function AgentsPage() {
+  const [typeFilter, setTypeFilter] = useState<AgentType | "all">("all");
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const { open, setContent } = useDetailPane();
+
+  const filteredAgents = useMemo(() => {
+    if (typeFilter === "all") return mockAgents;
+    return mockAgents.filter((agent) => agent.type === typeFilter);
+  }, [typeFilter]);
+
+  const handleAgentClick = useCallback(
+    (agent: Agent) => {
+      setSelectedAgentId(agent.id);
+      setContent(<AgentDetail agent={agent} />);
+      open();
+    },
+    [open, setContent]
+  );
+
+  useEffect(() => {
+    if (!filteredAgents.length) {
+      setSelectedAgentId(null);
+      return;
+    }
+    const stillVisible = filteredAgents.some((agent) => agent.id === selectedAgentId);
+    if (!selectedAgentId || !stillVisible) {
+      setSelectedAgentId(filteredAgents[0].id);
+    }
+  }, [filteredAgents, selectedAgentId]);
+
   return (
-    <div className="pb-(--composer-height)">
-      <h1 className="text-lg font-medium tracking-tight text-foreground">Agents</h1>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque vitae ligula sit amet
-        quam pulvinar pharetra. Integer vitae turpis sit amet lorem tempus interdum. Sed commodo,
-        nisi ut consequat sodales, sem lorem laoreet risus, nec luctus arcu mauris eget nunc. Donec
-        a massa a turpis suscipit malesuada. Nulla facilisi. Etiam auctor, lorem ac ultrices luctus,
-        neque purus accumsan enim, sed viverra mi lacus sit amet neque. Proin dignissim, nibh quis
-        lacinia posuere, augue sem malesuada risus, non dictum urna magna quis turpis. Suspendisse
-        potenti. Quisque vitae metus sed arcu ultricies scelerisque. Morbi tincidunt, nibh a gravida
-        luctus, sapien lorem finibus tellus, id iaculis mauris turpis a velit. Donec sed laoreet
-        lacus. In vitae metus sed odio pretium malesuada.
-        <br />
-        <br />
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean sit amet justo eu arcu
-        tristique lacinia. Cras vitae dolor at quam pretium fermentum. Aliquam erat volutpat.
-        Maecenas a sem vel augue mattis sodales. Vestibulum ante ipsum primis in faucibus orci
-        luctus et ultrices posuere cubilia curae; Integer eu odio et velit placerat tincidunt.
-        Phasellus congue, dui in porta tincidunt, est orci aliquet justo, vitae aliquam lorem urna
-        sit amet lectus. Donec euismod, elit eget feugiat posuere, est risus congue ipsum, id
-        aliquet sem velit et nibh. Vivamus nec turpis sed lorem convallis commodo at a mi. Nunc
-        tincidunt, metus in luctus suscipit, nunc nulla faucibus ligula, non interdum urna mi et
-        odio. Integer consectetur, justo eget aliquam finibus, sapien lorem feugiat odio, vel
-        tincidunt lectus ligula sit amet sapien.
-        <br />
-        <br />
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur porttitor, justo sed
-        faucibus vulputate, mi sapien ullamcorper purus, quis feugiat lorem mauris ac erat. Sed
-        dictum, mi non gravida vulputate, justo risus facilisis tortor, ac feugiat lectus magna in
-        nunc. Nam ac massa a urna accumsan gravida. Integer mattis, orci non pellentesque tincidunt,
-        nibh lacus commodo libero, a ullamcorper arcu turpis sed purus. Aliquam hendrerit, risus sed
-        tristique auctor, orci lectus tincidunt nulla, at iaculis velit ligula eget enim. Duis
-        interdum, velit non porttitor finibus, lectus mi gravida turpis, a luctus ipsum lorem id mi.
-        Praesent efficitur, nunc sed gravida malesuada, nunc ex tincidunt mi, vitae feugiat nibh
-        ipsum id nisi. Donec in turpis eu mi tempus faucibus.
-        <br />
-        <br />
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vel semper lorem. Integer
-        egestas, orci eget consequat gravida, magna nunc fringilla purus, a elementum ligula mi sit
-        amet massa. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac
-        turpis egestas. Sed nec tellus sit amet neque placerat dictum. Morbi a neque id sapien
-        volutpat facilisis. Etiam eu arcu non libero tristique laoreet. Duis vel posuere urna.
-        Nullam congue, eros et hendrerit facilisis, metus nisl tempus elit, ac vestibulum lectus
-        mauris ut nunc. Sed malesuada lectus quis eros vulputate, eget venenatis lorem interdum.
-        <br />
-        <br />
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae nulla sed sapien
-        pharetra eleifend. Morbi id consequat odio. Aliquam ac sapien vel sapien fermentum
-        tincidunt. Nulla ultricies, lorem a luctus tincidunt, magna ipsum lacinia mauris, non congue
-        velit massa in justo. Nulla facilisi. Donec eget mi id mauris blandit consequat. Proin vel
-        nibh sed mauris aliquam hendrerit. Vestibulum ante ipsum primis in faucibus orci luctus et
-        ultrices posuere cubilia curae; Nam et sem in lacus facilisis laoreet. Aliquam sed dolor in
-        lorem bibendum posuere.
-        <br />
-        <br />
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae nulla sed sapien
-        pharetra eleifend. Morbi id consequat odio. Aliquam ac sapien vel sapien fermentum
-        tincidunt. Nulla ultricies, lorem a luctus tincidunt, magna ipsum lacinia mauris, non congue
-        velit massa in justo. Nulla facilisi. Donec eget mi id mauris blandit consequat. Proin vel
-        nibh sed mauris aliquam hendrerit. Vestibulum ante ipsum primis in faucibus orci luctus et
-        ultrices posuere cubilia curae; Nam et sem in lacus facilisis laoreet. Aliquam sed dolor in
-        lorem bibendum posuere.
-        <br />
-        <br />
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae nulla sed sapien
-        pharetra eleifend. Morbi id consequat odio. Aliquam ac sapien vel sapien fermentum
-        tincidunt. Nulla ultricies, lorem a luctus tincidunt, magna ipsum lacinia mauris, non congue
-        velit massa in justo. Nulla facilisi. Donec eget mi id mauris blandit consequat. Proin vel
-        nibh sed mauris aliquam hendrerit. Vestibulum ante ipsum primis in faucibus orci luctus et
-        ultrices posuere cubilia curae; Nam et sem in lacus facilisis laoreet. Aliquam sed dolor in
-        lorem bibendum posuere.
-        <br />
-        <br />
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vitae nulla sed sapien
-        pharetra eleifend. Morbi id consequat odio. Aliquam ac sapien vel sapien fermentum
-        tincidunt. Nulla ultricies, lorem a luctus tincidunt, magna ipsum lacinia mauris, non congue
-        velit massa in justo. Nulla facilisi. Donec eget mi id mauris blandit consequat. Proin vel
-        nibh sed mauris aliquam hendrerit. Vestibulum ante ipsum primis in faucibus orci luctus et
-        ultrices posuere cubilia curae; Nam et sem in lacus facilisis laoreet. Aliquam sed dolor in
-        lorem bibendum posuere.
-      </p>
+    <div className="mx-auto w-full max-w-5xl px-6 py-8">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Agents</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Monitor and manage your active agents
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="size-9 rounded-full">
+            <Search className="size-4" />
+          </Button>
+          <Button variant="ghost" size="icon" className="size-9 rounded-full">
+            <ListFilter className="size-4" />
+          </Button>
+          <Button size="sm" className="ml-2 gap-1.5">
+            <Plus className="size-4" />
+            New Agent
+          </Button>
+        </div>
+      </div>
+
+      {/* Panel */}
+      <div className="overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
+        {/* Filter tabs */}
+        <div className="flex items-center gap-1 border-b border-border/60 px-2">
+          {(["all", "task", "assistant", "workflow"] as const).map((filter) => {
+            const isActive = typeFilter === filter;
+            const labels: Record<typeof filter, string> = {
+              all: "All",
+              task: "Tasks",
+              assistant: "Assistants",
+              workflow: "Workflows",
+            };
+
+            return (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setTypeFilter(filter)}
+                className={cn(
+                  "relative px-4 py-3 text-sm font-medium transition-colors",
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {labels[filter]}
+                {isActive && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-foreground" />}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Table */}
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="pl-5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Agent
+              </TableHead>
+              <TableHead className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Type
+              </TableHead>
+              <TableHead className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Status
+              </TableHead>
+              <TableHead className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Last Action
+              </TableHead>
+              <TableHead className="pr-5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Time
+              </TableHead>
+              <TableHead className="w-10" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAgents.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                  No agents found
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredAgents.map((agent) => {
+                const isSelected = selectedAgentId === agent.id;
+                const status = statusConfig[agent.status];
+
+                return (
+                  <TableRow
+                    key={agent.id}
+                    className={cn("cursor-pointer", isSelected && "bg-muted/50")}
+                    onClick={() => handleAgentClick(agent)}
+                  >
+                    <TableCell className="pl-5 font-medium">{agent.name}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {typeLabels[agent.type]}
+                    </TableCell>
+                    <TableCell>
+                      <span className={cn("inline-flex items-center gap-1.5", status.color)}>
+                        <span
+                          className={cn(
+                            "size-1.5 rounded-full",
+                            agent.status === "running" && "bg-green-500",
+                            agent.status === "idle" && "bg-amber-500",
+                            agent.status === "completed" && "bg-blue-500",
+                            agent.status === "failed" && "bg-red-500",
+                            agent.status === "paused" && "bg-muted-foreground"
+                          )}
+                        />
+                        {status.label}
+                      </span>
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate text-muted-foreground">
+                      {agent.lastAction}
+                    </TableCell>
+                    <TableCell className="pr-5 text-right text-muted-foreground">
+                      {agent.lastActionAt}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

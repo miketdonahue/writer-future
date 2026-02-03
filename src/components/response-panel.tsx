@@ -15,7 +15,7 @@ export function ResponsePanel() {
   const getCollapsedText = () => {
     if (isStreaming) return "Generating...";
     if (messages.length > 0) {
-      return "Conversation history";
+      return "Previous requests";
     }
     return null;
   };
@@ -28,7 +28,7 @@ export function ResponsePanel() {
   }
 
   return (
-    <div className="pointer-events-auto absolute bottom-full left-0 right-0 z-30">
+    <div className="pointer-events-auto absolute bottom-full left-1/2 z-30 w-[96%] -translate-x-1/2">
       {/* Collapsed Header Bar - always visible */}
       <button
         type="button"

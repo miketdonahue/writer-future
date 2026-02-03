@@ -160,7 +160,7 @@ export function ChatComposer({
       globalDrop
       className={cn(
         // Style the internal InputGroup (the actual visual container).
-        "**:data-[slot=input-group]:rounded-b-lg **:data-[slot=input-group]:rounded-t-none **:data-[slot=input-group]:border-border",
+        "**:data-[slot=input-group]:rounded-lg **:data-[slot=input-group]:border-border",
         "**:data-[slot=input-group]:bg-background **:data-[slot=input-group]:shadow-sm",
         "**:data-[slot=input-group]:p-2",
         // InputGroup dims itself when any child is disabled; keep the composer readable.

@@ -37,7 +37,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const prevPathname = useRef(pathname);
   const { isOpen, content, close, setContent } = useDetailPane();
-  const { isDrawerOpen } = useChatStore();
+  const { isDrawerOpen, closeDrawer } = useChatStore();
   const composerHeight = "196px";
 
   const getIsActive = (href: string) => {
@@ -53,6 +53,17 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, close, setContent]);
 
+  // Close response panel on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isDrawerOpen) {
+        closeDrawer();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isDrawerOpen, closeDrawer]);
+
   return (
     <div className="flex h-screen bg-background-warm">
       {/* Full-page backdrop overlay when response panel is open */}
@@ -63,7 +74,8 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 cursor-pointer bg-black/40"
+            onClick={closeDrawer}
           />
         )}
       </AnimatePresence>
@@ -130,17 +142,24 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
                   <div className="mx-auto max-w-2xl h-[120px]" />
                 </div>
               </div>
-              {/* Content layer - highlighted above backdrop */}
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50">
-                <div className="px-6 pb-6 pt-8">
-                  <div className="pointer-events-auto relative mx-auto max-w-2xl">
-                    <ResponsePanel />
-                    <ChatComposer placeholder="What can I help with?" />
-                  </div>
-                </div>
-              </div>
             </div>
           </main>
+        </motion.div>
+
+        {/* Composer layer - separate from transforming pane so z-index works with backdrop */}
+        <motion.div
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex justify-center p-3 pb-6"
+          animate={{
+            x: isOpen ? "calc(-25% - 3px)" : 0,
+          }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+        >
+          <div className="w-[calc(50%-6px)] px-6">
+            <div className="pointer-events-auto relative mx-auto max-w-2xl">
+              <ResponsePanel />
+              <ChatComposer placeholder="What can I help with?" />
+            </div>
+          </div>
         </motion.div>
 
         {/* Detail Pane - uses AnimatePresence for proper enter/exit */}
