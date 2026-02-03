@@ -123,9 +123,16 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
                 <PageTransition>{children}</PageTransition>
               </div>
 
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50">
+              {/* Background layer - dimmed when drawer open */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
                 <div className="absolute inset-x-0 -top-14 h-14 bg-linear-to-t from-background-warm via-background-warm/70 to-transparent" />
-                <div className="relative bg-background-warm px-6 pb-6 pt-8">
+                <div className="bg-background-warm px-6 pb-6 pt-4">
+                  <div className="mx-auto max-w-2xl h-[120px]" />
+                </div>
+              </div>
+              {/* Content layer - highlighted above backdrop */}
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-50">
+                <div className="px-6 pb-6 pt-8">
                   <div className="pointer-events-auto relative mx-auto max-w-2xl">
                     <ResponsePanel />
                     <ChatComposer placeholder="Ask anything..." />
