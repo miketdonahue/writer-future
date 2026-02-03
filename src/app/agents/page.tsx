@@ -1,10 +1,11 @@
 "use client";
 
-import { Bot, ListFilter, MoreHorizontal, Plus, Search } from "lucide-react";
+import { Bot, ListFilter, Plus, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDetailPane } from "@/components/detail-pane-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -42,6 +43,7 @@ const mockAgents: Agent[] = [
     status: "running",
     lastAction: "Answered question about billing cycles",
     lastActionAt: "2m ago",
+    progress: { current: 3, total: 10 },
     tokensUsed: 1247,
   },
   {
@@ -63,6 +65,7 @@ const mockAgents: Agent[] = [
     status: "idle",
     lastAction: "Generated draft for Q4 report",
     lastActionAt: "1h ago",
+    progress: { current: 7, total: 10 },
     tokensUsed: 892,
   },
   {
@@ -73,6 +76,7 @@ const mockAgents: Agent[] = [
     status: "completed",
     lastAction: "Reviewed PR #1423 — 12 suggestions",
     lastActionAt: "3h ago",
+    progress: { current: 5, total: 5 },
     tokensUsed: 2156,
   },
   {
@@ -95,6 +99,7 @@ const mockAgents: Agent[] = [
     status: "paused",
     lastAction: "Escalated to human agent",
     lastActionAt: "20m ago",
+    progress: { current: 1, total: 4 },
     tokensUsed: 678,
   },
   {
@@ -104,6 +109,7 @@ const mockAgents: Agent[] = [
     status: "running",
     lastAction: "Summarizing Q3 financial report",
     lastActionAt: "1m ago",
+    progress: { current: 6, total: 8 },
     tokensUsed: 1534,
   },
   {
@@ -119,27 +125,12 @@ const mockAgents: Agent[] = [
   },
 ];
 
-const statusConfig: Record<AgentStatus, { label: string; color: string }> = {
-  running: { label: "Running", color: "text-green-600 dark:text-green-500" },
-  idle: { label: "Idle", color: "text-amber-600 dark:text-amber-500" },
-  completed: { label: "Completed", color: "text-blue-600 dark:text-blue-500" },
-  failed: { label: "Failed", color: "text-red-600 dark:text-red-500" },
-  paused: { label: "Paused", color: "text-muted-foreground" },
-};
-
-const typeLabels: Record<AgentType, string> = {
-  task: "Task",
-  assistant: "Assistant",
-  workflow: "Workflow",
-};
-
 export default function AgentsPage() {
-  const [typeFilter, setTypeFilter] = useState<AgentType | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<AgentType>("task");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const { open, setContent } = useDetailPane();
 
   const filteredAgents = useMemo(() => {
-    if (typeFilter === "all") return mockAgents;
     return mockAgents.filter((agent) => agent.type === typeFilter);
   }, [typeFilter]);
 
@@ -186,138 +177,143 @@ export default function AgentsPage() {
 
           {/* Panel */}
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
-        {/* Filter tabs */}
-        <div className="flex shrink-0 items-center gap-1 border-b border-border/60 px-2">
-          {(["all", "task", "assistant", "workflow"] as const).map((filter) => {
-            const isActive = typeFilter === filter;
-            const labels: Record<typeof filter, string> = {
-              all: "All",
-              task: "Tasks",
-              assistant: "Assistants",
-              workflow: "Workflows",
-            };
-
-            return (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setTypeFilter(filter)}
-                className={cn(
-                  "relative px-4 py-3 text-sm font-medium transition-colors",
-                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {labels[filter]}
-                {isActive && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-foreground" />}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Table */}
-        <div className="min-h-0 flex-1 overflow-auto">
-          <Table>
-          <TableHeader className="sticky top-0 bg-background">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="pl-5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Agent
-              </TableHead>
-              <TableHead className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Type
-              </TableHead>
-              <TableHead className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Status
-              </TableHead>
-              <TableHead className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Last Action
-              </TableHead>
-              <TableHead className="pr-5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Time
-              </TableHead>
-              <TableHead className="w-10" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredAgents.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
-                  No agents found
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredAgents.map((agent) => {
-                const isSelected = selectedAgentId === agent.id;
-                const status = statusConfig[agent.status];
+            {/* Filter tabs */}
+            <div className="flex shrink-0 items-center gap-1 border-b border-border/60 px-5">
+              {(["task", "assistant", "workflow"] as const).map((filter) => {
+                const isActive = typeFilter === filter;
+                const labels: Record<typeof filter, string> = {
+                  task: "Requests",
+                  assistant: "Assistants",
+                  workflow: "Workflows",
+                };
 
                 return (
-                  <TableRow
-                    key={agent.id}
-                    className={cn("cursor-pointer", isSelected && "bg-muted/50")}
-                    onClick={() => handleAgentClick(agent)}
+                  <button
+                    key={filter}
+                    type="button"
+                    onClick={() => setTypeFilter(filter)}
+                    className={cn(
+                      "relative px-4 py-3 text-sm font-medium transition-colors",
+                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
                   >
-                    <TableCell className="py-4 pl-5">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="size-10">
-                          {agent.avatar ? (
-                            <AvatarImage src={agent.avatar} alt={agent.name} />
-                          ) : null}
-                          <AvatarFallback className="bg-muted">
-                            <Bot className="size-4 text-muted-foreground" />
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="min-w-0">
-                          <div className="font-medium">{agent.name}</div>
-                          {agent.description && (
-                            <div className="truncate text-sm text-muted-foreground">
-                              {agent.description}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4 text-muted-foreground">
-                      {typeLabels[agent.type]}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <span className={cn("inline-flex items-center gap-1.5", status.color)}>
-                        <span
-                          className={cn(
-                            "size-1.5 rounded-full",
-                            agent.status === "running" && "bg-green-500",
-                            agent.status === "idle" && "bg-amber-500",
-                            agent.status === "completed" && "bg-blue-500",
-                            agent.status === "failed" && "bg-red-500",
-                            agent.status === "paused" && "bg-muted-foreground"
-                          )}
-                        />
-                        {status.label}
-                      </span>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate py-4 text-muted-foreground">
-                      {agent.lastAction}
-                    </TableCell>
-                    <TableCell className="py-4 pr-5 text-right text-muted-foreground">
-                      {agent.lastActionAt}
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100 data-[state=open]:opacity-100"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                    {labels[filter]}
+                    {isActive && (
+                      <span className="absolute inset-x-0 -bottom-px h-0.5 bg-foreground" />
+                    )}
+                  </button>
                 );
-              })
-            )}
-          </TableBody>
-        </Table>
+              })}
+            </div>
+
+            {/* Table Header - Fixed */}
+            <div className="shrink-0">
+              <Table>
+                <colgroup>
+                  <col className="w-[40%]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[15%]" />
+                </colgroup>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent [&_th]:py-3.5">
+                    <TableHead className="pl-5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      {typeFilter === "task"
+                        ? "Request"
+                        : typeFilter === "assistant"
+                          ? "Assistant"
+                          : "Workflow"}
+                    </TableHead>
+                    <TableHead className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Progress
+                    </TableHead>
+                    <TableHead className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Status
+                    </TableHead>
+                    <TableHead className="pr-5 text-right text-xs font-medium uppercase tracking-wide text-muted-foreground" />
+                  </TableRow>
+                </TableHeader>
+              </Table>
+            </div>
+
+            {/* Table Body - Scrollable */}
+            <div className="min-h-0 flex-1 overflow-auto">
+              <Table>
+                <colgroup>
+                  <col className="w-[40%]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[20%]" />
+                  <col className="w-[15%]" />
+                </colgroup>
+                <TableBody>
+                  {filteredAgents.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                        No agents found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredAgents.map((agent) => {
+                      const isSelected = selectedAgentId === agent.id;
+
+                      return (
+                        <TableRow
+                          key={agent.id}
+                          className={cn(
+                            "cursor-pointer hover:bg-brand-accent/60",
+                            isSelected && "bg-brand-accent/60"
+                          )}
+                          onClick={() => handleAgentClick(agent)}
+                        >
+                          <TableCell className="py-3 pl-5">
+                            <div className="flex items-center gap-3">
+                              {agent.type !== "task" && (
+                                <Avatar className="size-10">
+                                  {agent.avatar ? (
+                                    <AvatarImage src={agent.avatar} alt={agent.name} />
+                                  ) : null}
+                                  <AvatarFallback className="bg-muted">
+                                    <Bot className="size-4 text-muted-foreground" />
+                                  </AvatarFallback>
+                                </Avatar>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate font-medium">{agent.name}</div>
+                                {agent.type !== "task" && agent.description && (
+                                  <div className="truncate text-xs text-muted-foreground">
+                                    {agent.description}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-3">
+                            <Progress
+                              value={
+                                agent.progress
+                                  ? (agent.progress.current / agent.progress.total) * 100
+                                  : agent.status === "completed"
+                                    ? 100
+                                    : 0
+                              }
+                              className="w-24"
+                            />
+                          </TableCell>
+                          <TableCell className="truncate py-3 text-muted-foreground">
+                            {agent.status === "completed" ? "Done" : "Working"}
+                          </TableCell>
+                          <TableCell className="py-3 pr-5 text-right text-muted-foreground">
+                            {agent.lastActionAt}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
-        </div>
-      </div>
       </div>
     </div>
   );
