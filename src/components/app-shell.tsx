@@ -135,7 +135,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
                 <div className="px-6 pb-6 pt-8">
                   <div className="pointer-events-auto relative mx-auto max-w-2xl">
                     <ResponsePanel />
-                    <ChatComposer placeholder="Ask anything..." />
+                    <ChatComposer placeholder="What can I help with?" />
                   </div>
                 </div>
               </div>

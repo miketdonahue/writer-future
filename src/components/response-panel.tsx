@@ -15,8 +15,7 @@ export function ResponsePanel() {
   const getCollapsedText = () => {
     if (isStreaming) return "Generating...";
     if (messages.length > 0) {
-      const count = messages.length;
-      return `${count} message${count === 1 ? "" : "s"}`;
+      return "Conversation history";
     }
     return null;
   };
@@ -44,7 +43,7 @@ export function ResponsePanel() {
       >
         <div className="flex items-center gap-2">
           {isStreaming && <Spinner className="size-3.5" />}
-          <span className="text-xs text-foreground">{collapsedText}</span>
+          <span className="text-xs text-foreground/70">{collapsedText}</span>
         </div>
         {isDrawerOpen ? (
           <ChevronDownIcon className="size-3.5 text-muted-foreground" />
@@ -102,6 +101,8 @@ export function ResponsePanel() {
             </div>
             {/* Top fade gradient */}
             <div className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-linear-to-b from-background via-background/70 to-transparent" />
+            {/* Bottom fade gradient */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-linear-to-t from-background via-background/70 to-transparent" />
           </motion.div>
         )}
       </AnimatePresence>
