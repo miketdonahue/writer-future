@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronDownIcon, ChevronUpIcon, CopyIcon, LoaderCircle, Plus } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Message,
   MessageAction,
@@ -9,10 +11,9 @@ import {
 } from "@/components/ai-elements/message";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Spinner } from "@/components/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/stores/chat-store";
-import { ChevronDownIcon, ChevronUpIcon, CopyIcon } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 
 export function ResponsePanel() {
   const { messages, isStreaming, streamingContent, isDrawerOpen, toggleDrawer } = useChatStore();
@@ -21,7 +22,7 @@ export function ResponsePanel() {
   const getCollapsedText = () => {
     if (isStreaming) return "Generating...";
     if (messages.length > 0) {
-      return "Previous requests";
+      return "Updating the title to...";
     }
     return null;
   };
@@ -38,7 +39,7 @@ export function ResponsePanel() {
   };
 
   return (
-    <div className="pointer-events-auto absolute bottom-full left-1/2 z-30 w-[96%] -translate-x-1/2">
+    <div className="pointer-events-auto absolute bottom-full left-1/2 z-30 w-[98%] -translate-x-1/2">
       {/* Collapsed Header Bar - always visible */}
       <button
         type="button"
@@ -53,13 +54,26 @@ export function ResponsePanel() {
       >
         <div className="flex items-center gap-2">
           {isStreaming && <Spinner className="size-3.5" />}
-          <span className="text-xs text-foreground/70">{collapsedText}</span>
+          <span className="text-[13px] text-foreground/70">{collapsedText}</span>
         </div>
-        {isDrawerOpen ? (
-          <ChevronDownIcon className="size-3.5 text-muted-foreground" />
-        ) : (
-          <ChevronUpIcon className="size-3.5 text-muted-foreground" />
-        )}
+        <div className="flex items-center gap-3">
+          <LoaderCircle className="size-4 animate-spin text-muted-foreground" />
+          <Tooltip>
+            <TooltipTrigger
+              render={<span />}
+              className="flex items-center justify-center rounded-md p-0.5 transition-colors hover:bg-accent"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Plus className="size-4 text-muted-foreground" />
+            </TooltipTrigger>
+            <TooltipContent side="top">New request</TooltipContent>
+          </Tooltip>
+          {isDrawerOpen ? (
+            <ChevronDownIcon className="size-4 text-muted-foreground" />
+          ) : (
+            <ChevronUpIcon className="size-4 text-muted-foreground" />
+          )}
+        </div>
       </button>
 
       {/* Expandable Content - slides up/down */}

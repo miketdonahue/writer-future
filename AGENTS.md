@@ -4,7 +4,6 @@
 
 This is a **POC/prototyping project**. Speed of iteration matters more than production-grade practices:
 
-- **No database migrations** — Edit `src/server/db/schema.ts` directly, then run `pnpm db:push` to sync changes. Do NOT use `drizzle-kit generate` or create migration files.
 - **No test suite** — Tests are not configured. Don't try to run Jest, Vitest, or any test runner.
 - **Rapid iteration** — Favor working code over perfect abstractions. Refactor later.
 
@@ -12,17 +11,15 @@ This is a **POC/prototyping project**. Speed of iteration matters more than prod
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16 (App Router) |
-| Runtime | React 19 |
+| Build Tool | Vite 6 |
+| Framework | React 19 |
+| Routing | React Router 7 |
 | Language | TypeScript 5.9 |
 | Styling | Tailwind CSS 4 + class-variance-authority |
 | UI Primitives | Base UI (`@base-ui/react`) — **NOT Radix** |
 | Icons | Lucide React |
 | Forms | React Hook Form + Zod validation |
 | State | Zustand |
-| API | tRPC with React Query + SuperJSON |
-| Database | PostgreSQL via Drizzle ORM |
-| AI | Vercel AI SDK (`ai`, `@ai-sdk/openai`, `@ai-sdk/react`) |
 | Animation | Motion library |
 | Flow Diagrams | @xyflow/react |
 | Linting | Biome |
@@ -32,10 +29,11 @@ This is a **POC/prototyping project**. Speed of iteration matters more than prod
 
 ```bash
 # Development
-pnpm dev                    # Start dev server
+pnpm dev                    # Start Vite dev server (localhost:3000)
 
 # Build & Deploy
 pnpm build                  # Production build (run before committing)
+pnpm preview                # Preview production build locally
 
 # Code Quality (use these, NOT eslint/prettier)
 pnpm lint                   # Run Biome linter
@@ -43,33 +41,14 @@ pnpm lint:fix               # Fix linting issues
 pnpm format                 # Format code with Biome
 pnpm check                  # Run all Biome checks
 pnpm check:fix              # Fix all Biome issues
-
-# Database
-pnpm db:up                  # Start PostgreSQL container
-pnpm db:down                # Stop database
-pnpm db:push                # Push schema changes to database
-pnpm db:seed                # Seed database
-pnpm db:studio              # Open Drizzle Studio
 ```
 
 ## Architecture Rules
 
-### Database
-
-- Schema lives in `src/server/db/schema.ts`
-- **Do NOT create Drizzle migrations.** This is a POC project. Update the schema directly and use `pnpm db:push` to apply changes.
-- Database connection via `src/server/db/index.ts`
-
-### API Layer
-
-- All API routes use tRPC (routers in `src/server/trpc/routers/`)
-- Use `Zod` for all input validation
-- tRPC uses SuperJSON for serialization (dates, Maps, etc. work automatically)
-
 ### Components
 
 - All components must be functional components with TypeScript
-- Server Components by default; add `"use client"` only when needed
+- All components are client-side (no server components)
 - Use the `@/components/ui` alias for shared UI primitives
 - Use `cn()` from `@/lib/utils` for conditional class merging
 
@@ -160,28 +139,25 @@ Enforced via Biome (do not override):
 
 ```
 src/
-├── app/                    # Next.js App Router pages
-│   └── api/trpc/          # tRPC API route handler
+├── app/                    # Page components (routes defined in App.tsx)
 ├── components/
 │   └── ui/                # Reusable UI primitives (Base UI wrappers)
 ├── hooks/                 # Custom React hooks (use-*.tsx)
 ├── lib/                   # Utility functions
-├── server/
-│   ├── db/                # Drizzle schema, connection, seeds
-│   └── trpc/              # tRPC router definitions
-└── trpc/                  # Client-side tRPC setup
+├── stores/                # Zustand state stores
+├── App.tsx                # Root component with React Router routes
+└── main.tsx               # Vite entry point
 ```
 
 ## Development Tools
 
 - **Context7 MCP Server**: Use for querying up-to-date documentation and code examples for any library in this stack.
-- **Drizzle Studio**: Visual database browser (`pnpm db:studio`)
 
 ## Common Pitfalls to Avoid
 
 1. **Don't use ESLint or Prettier** — this project uses Biome exclusively
 2. **Don't use Radix UI patterns** — we use Base UI
-3. **Don't create database migrations** — use `db:push` directly
+3. **Don't use Next.js imports** — use React Router (`react-router-dom`) for routing
 4. **Don't use Jest** — no test runner is configured yet
 5. **Don't use npm or yarn** — use pnpm exclusively
 6. **Don't use single quotes** — Biome enforces double quotes

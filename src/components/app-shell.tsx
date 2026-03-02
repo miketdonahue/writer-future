@@ -2,9 +2,8 @@
 
 import { Home, Inbox, ServerCog, Workflow, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { ChatComposer } from "@/components/chat-composer";
 import { DetailPaneProvider, useDetailPane } from "@/components/detail-pane-context";
 import { PageTransition } from "@/components/page-transition";
@@ -14,17 +13,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { useChatStore } from "@/stores/chat-store";
 
-/**
- * Renders children only after client mount. Avoids hydration mismatch for
- * Base UI components that use useId(), which can differ between Next.js
- * server and client React instances.
- */
-function ClientOnly({ children }: { children: React.ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
-  return <>{children}</>;
-}
 
 const tabs = [
   { id: "home", href: "/home", icon: Home, label: "Home" },
@@ -34,7 +22,8 @@ const tabs = [
 ] as const;
 
 function AppShellInner({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const prevPathname = useRef(pathname);
   const { isOpen, content, close, setContent } = useDetailPane();
   const { isDrawerOpen, closeDrawer } = useChatStore();
@@ -80,40 +69,38 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Tool Rail - client-only to avoid Base UI useId hydration mismatch (Next server vs client React) */}
+      {/* Tool Rail */}
       <nav className="flex w-14 shrink-0 flex-col items-center justify-center border-r border-border bg-background">
-        <ClientOnly>
-          <div className="flex flex-col gap-1">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = getIsActive(tab.href);
+        <div className="flex flex-col gap-1">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = getIsActive(tab.href);
 
-              return (
-                <Tooltip key={tab.id}>
-                  <TooltipTrigger>
-                    <Link
-                      href={tab.href}
+            return (
+              <Tooltip key={tab.id}>
+                <TooltipTrigger>
+                  <Link
+                    to={tab.href}
+                    className={cn(
+                      "group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {/* Active indicator */}
+                    <span
                       className={cn(
-                        "group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors",
-                        isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                        "absolute left-0 h-6 w-0.5 rounded-r-full bg-foreground transition-opacity",
+                        isActive ? "opacity-100" : "opacity-0"
                       )}
-                    >
-                      {/* Active indicator */}
-                      <span
-                        className={cn(
-                          "absolute left-0 h-6 w-0.5 rounded-r-full bg-foreground transition-opacity",
-                          isActive ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      <Icon className="h-5 w-5" strokeWidth={1.5} />
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">{tab.label}</TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </div>
-        </ClientOnly>
+                    />
+                    <Icon className="h-5 w-5" strokeWidth={1.5} />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">{tab.label}</TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </div>
       </nav>
 
       {/* Content Area */}
@@ -125,11 +112,11 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         <motion.div
           className="absolute inset-0 flex justify-center p-3"
           animate={{
-            x: isOpen ? "calc(-25% - 3px)" : 0,
+            x: isOpen ? "calc(-22.5% - 3px)" : 0,
           }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         >
-          <main className="h-full w-[calc(50%-6px)] shrink-0 overflow-hidden">
+          <main className="h-full w-[calc(55%-6px)] shrink-0 overflow-hidden">
             <div className="relative h-full">
               <div className="h-full overflow-auto pb-(--composer-height)">
                 <PageTransition>{children}</PageTransition>
@@ -150,11 +137,11 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         <motion.div
           className="pointer-events-none absolute inset-x-0 bottom-0 z-50 flex justify-center p-3 pb-6"
           animate={{
-            x: isOpen ? "calc(-25% - 3px)" : 0,
+            x: isOpen ? "calc(-22.5% - 3px)" : 0,
           }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         >
-          <div className="w-[calc(50%-6px)] px-6">
+          <div className="w-[calc(55%-6px)] px-6">
             <div className="pointer-events-auto relative mx-auto max-w-2xl">
               <ResponsePanel />
               <ChatComposer placeholder="What can I help with?" />
@@ -170,7 +157,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: 16, opacity: 0 }}
               transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-              className="absolute right-0 top-0 flex h-full w-1/2 justify-center"
+              className="absolute right-0 top-0 flex h-full w-[45%] justify-center"
             >
               <aside className="relative h-full w-full overflow-y-auto border-l border-border bg-background px-6 py-6">
                 <Button

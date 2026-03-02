@@ -1,5 +1,3 @@
-"use client";
-
 import { Bot, ListFilter, Plus, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDetailPane } from "@/components/detail-pane-context";
@@ -156,7 +154,7 @@ export default function AgentsPage() {
 
   return (
     <div className="flex min-h-full items-center justify-center px-3 py-6">
-      <div className="w-full max-w-5xl">
+      <div className="w-full max-w-3xl">
         <div className="flex h-152 max-h-[calc(100vh-var(--composer-height)-8rem)] flex-col">
           {/* Header */}
           <div className="mb-5 flex items-center justify-between">
