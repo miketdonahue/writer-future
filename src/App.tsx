@@ -5,6 +5,7 @@ import AgentsPage from "@/app/agents/page";
 import AutomationsPage from "@/app/automations/page";
 import HomePage from "@/app/home/page";
 import InboxPage from "@/app/inbox/page";
+import ProjectsPage from "@/app/projects/page";
 
 export function App() {
   return (
@@ -14,6 +15,7 @@ export function App() {
           <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/agents" element={<AgentsPage />} />
           <Route path="/automations" element={<AutomationsPage />} />
         </Routes>

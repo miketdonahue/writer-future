@@ -6,6 +6,7 @@ This is a **POC/prototyping project**. Speed of iteration matters more than prod
 
 - **No test suite** — Tests are not configured. Don't try to run Jest, Vitest, or any test runner.
 - **Rapid iteration** — Favor working code over perfect abstractions. Refactor later.
+- **Fake it** — Simulate interactions, data, and backend behavior using scripts, hardcoded values, timeouts, and loops. Do not build full-stack infrastructure to prove a concept.
 
 ## Tech Stack
 

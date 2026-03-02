@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Inbox, ServerCog, Workflow, X } from "lucide-react";
+import { FolderKanban, Home, Inbox, ServerCog, Workflow, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useLayoutEffect, useRef } from "react";
@@ -17,6 +17,7 @@ import { useChatStore } from "@/stores/chat-store";
 const tabs = [
   { id: "home", href: "/home", icon: Home, label: "Home" },
   { id: "inbox", href: "/inbox", icon: Inbox, label: "Inbox" },
+  { id: "projects", href: "/projects", icon: FolderKanban, label: "Projects" },
   { id: "agents", href: "/agents", icon: ServerCog, label: "Agents" },
   { id: "automations", href: "/automations", icon: Workflow, label: "Automations" },
 ] as const;
@@ -78,23 +79,25 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
             return (
               <Tooltip key={tab.id}>
-                <TooltipTrigger>
-                  <Link
-                    to={tab.href}
-                    className={cn(
-                      "group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors",
-                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {/* Active indicator */}
-                    <span
+                <TooltipTrigger
+                  render={
+                    <Link
+                      to={tab.href}
                       className={cn(
-                        "absolute left-0 h-6 w-0.5 rounded-r-full bg-foreground transition-opacity",
-                        isActive ? "opacity-100" : "opacity-0"
+                        "group relative flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+                        isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                       )}
                     />
-                    <Icon className="h-5 w-5" strokeWidth={1.5} />
-                  </Link>
+                  }
+                >
+                  {/* Active indicator */}
+                  <span
+                    className={cn(
+                      "absolute left-0 h-6 w-0.5 rounded-r-full bg-foreground transition-opacity",
+                      isActive ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  <Icon className="h-5 w-5" strokeWidth={1.5} />
                 </TooltipTrigger>
                 <TooltipContent side="right">{tab.label}</TooltipContent>
               </Tooltip>
